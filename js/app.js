@@ -6,6 +6,7 @@
 var locations = ko.observableArray([
     {
         title: 'TribeFit',
+        id: '513c0f27e4b024277fd07363',
         location: {
             lat: 25.074822,
             lng: 55.13843799999999
@@ -13,9 +14,34 @@ var locations = ko.observableArray([
     },
     {
         title: 'Fitness Factory Gym & Cafe',
+        id: '4cea56086afd6a314f7ed74d',
         location: {
             lat: 25.047123,
             lng: 55.13072400000001
+        }
+    },
+    {
+        title: 'FitRepublik',
+        id: '54ab87ed498ea4e6cfdcd05f',
+        location: {
+            lat: 25.037640479844804,
+            lng: 55.22657075753127
+        }
+    },
+    {
+        title: 'Fitness First Lakes Club',
+        id: '4dc3add57d8b14fb45fd94a0',
+        location: {
+            lat: 25.079192105184507,
+            lng: 55.16771534151269
+        }
+    },
+    {
+        title: 'Talise Fitness',
+        id: '4c0f78dbb60ed13a327030f2',
+        location: {
+            lat: 25.134795093065133,
+            lng: 55.1857852935791
         }
     }
 ]);
@@ -94,12 +120,26 @@ var viewModel = function(){
         }
     }
 
+    var venueSearch = 'https://api.foursquare.com/v2/venues/explore?client_id=ZQ3FU1XQ41GNCR10FGQMQ54SFUNASZ5CXP1POHJWIEG1GQ3M&client_secret=NOPQ4SNHLMZDLXCZD0WEK2TX0ETRDIJP1MOWCWNKRCGSB5GJ&v=20160908%20&ll=25.04,55.13&query=gym';
+    console.log('Now the AJAX request starts');
+    $.ajax({
+        url: venueSearch
 
+    }).done(function(data) {
+        for (i = 0; i < data.response.groups[0].items.length; i++){
+            console.log(data.response.groups[0].items[i].venue.name);
+            console.log(data.response.groups[0].items[i].venue.location.lat);
+            console.log(data.response.groups[0].items[i].venue.location.lng);
+        }
+        console.log(data.response.groups[0].items);
+
+        console.log('Now the request has finished')
+    });
 };
 
 function initMap() {
     map = new google.maps.Map(document.getElementById('map'), {
-        center: {lat: 25.0601975, lng: 55.2093505},
+        center: {lat: 25.0712980, lng: 55.2093505},
         zoom: 13,
         mapTypeControl: false
     });
