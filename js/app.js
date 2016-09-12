@@ -58,13 +58,14 @@ var viewModel = function(){
     for (var i = 0; i < locations().length; i++) {
         var position = locations()[i].location;
         var title = locations()[i].title;
+        var id = locations()[i].id;
         // Create markers for each location and puts into the markers array.
         var marker = new google.maps.Marker({
             position: position,
             map: map,
             title: title,
             animation: google.maps.Animation.DROP,
-            id: i
+            id: id
         });
         // Push the marker to our array of markers.
         markers.push(marker);
@@ -87,54 +88,35 @@ var viewModel = function(){
             infowindow.addListener('closeclick', function() {
                 infowindow.marker = null;
             });
-            var streetViewService = new google.maps.StreetViewService();
-            var radius = 50;
-            // In case the status is OK, which means the pano was found, compute the
-            // position of the streetview image, then calculate the heading, then get a
-            // panorama from that and set the options
-            function getStreetView(data, status) {
-                if (status == google.maps.StreetViewStatus.OK) {
-                    var nearStreetViewLocation = data.location.latLng;
-                    var heading = google.maps.geometry.spherical.computeHeading(
-                        nearStreetViewLocation, marker.position);
-                    infowindow.setContent('<div>' + marker.title + '</div><div id="pano"></div>');
-                    var panoramaOptions = {
-                        position: nearStreetViewLocation,
-                        pov: {
-                            heading: heading,
-                            pitch: 30
-                        }
-                    };
-                    var panorama = new google.maps.StreetViewPanorama(
-                        document.getElementById('pano'), panoramaOptions);
-                } else {
-                    infowindow.setContent('<div>' + marker.title + '</div>' +
-                        '<div>No Street View Found</div>');
-                }
+
+            function getVenueInfo() {
+                var clientId = 'ZQ3FU1XQ41GNCR10FGQMQ54SFUNASZ5CXP1POHJWIEG1GQ3M';
+                var clientSecret = 'NOPQ4SNHLMZDLXCZD0WEK2TX0ETRDIJP1MOWCWNKRCGSB5GJ';
+                var foursquareLink = 'https://api.foursquare.com/v2/venues/';
+                var version = '20160906';
+                // Generate the url that we use in the .ajax request towards foursquare.
+                var searchLink = foursquareLink + marker.id +'?client_id='+ clientId +'&client_secret='+ clientSecret +'&v='+ version;
+                infowindow.setContent('<div>' + marker.title + '</div><div id="photo"></div>');
+                $.ajax({
+                    url: searchLink
+                }).done(function(data){
+                    // Adds the best photo to the infowindow
+                    if(data.response.venue.bestPhoto) {
+                        var bestPhoto = data.response.venue.bestPhoto.prefix +'width200'+ data.response.venue.bestPhoto.suffix;
+                        console.log(bestPhoto);
+                        $('#photo').append('<img src="'+ bestPhoto +'">');
+                    } else {
+                        $('#photo').append('<p>No photos exist of this place. Suspicious?</p>');
+                    }
+
+                })
+
             }
-            // Use streetview service to get the closest streetview image within
-            // 50 meters of the markers position
-            streetViewService.getPanoramaByLocation(marker.position, radius, getStreetView);
             // Open the infowindow on the correct marker.
             infowindow.open(map, marker);
+            getVenueInfo();
         }
     }
-
-    var venueSearch = 'https://api.foursquare.com/v2/venues/explore?client_id=ZQ3FU1XQ41GNCR10FGQMQ54SFUNASZ5CXP1POHJWIEG1GQ3M&client_secret=NOPQ4SNHLMZDLXCZD0WEK2TX0ETRDIJP1MOWCWNKRCGSB5GJ&v=20160908%20&ll=25.04,55.13&query=gym';
-    console.log('Now the AJAX request starts');
-    $.ajax({
-        url: venueSearch
-
-    }).done(function(data) {
-        for (i = 0; i < data.response.groups[0].items.length; i++){
-            console.log(data.response.groups[0].items[i].venue.name);
-            console.log(data.response.groups[0].items[i].venue.location.lat);
-            console.log(data.response.groups[0].items[i].venue.location.lng);
-        }
-        console.log(data.response.groups[0].items);
-
-        console.log('Now the request has finished')
-    });
 };
 
 function initMap() {
