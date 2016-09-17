@@ -9,8 +9,8 @@
 <div class="container">
     <div class="option-box">
         <h1>Gyms in Dubai</h1>
-        <input data-bind="textInput: locations.title">
-        <ul data-bind="foreach: locations">
+        <input type="search" data-bind="textInput: viewModel.filter, event: {keyup: viewModel.markersVisible}">
+        <ul data-bind="foreach: viewModel.filteredItems">
             <li data-bind="text: title"></li>
         </ul>
     </div>

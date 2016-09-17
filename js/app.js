@@ -3,7 +3,7 @@
  */
 
 //**----The Model----**//
-var locations = ko.observableArray([
+var locations = [
     {
         title: 'TribeFit',
         id: '513c0f27e4b024277fd07363',
@@ -44,41 +44,59 @@ var locations = ko.observableArray([
             lng: 55.1857852935791
         }
     }
-]);
+];
 
 //**----The View----**//
 
 //**----The ViewModel----**//
 var map;
 var markers = [];
-var viewModel = function(){
-    var largeInfowindow = new google.maps.InfoWindow();
-    // Creates an array of the locations for use as markers on initialize.
-    // Credit goes to the Google API course here on Udacity.
-    for (var i = 0; i < locations().length; i++) {
-        var position = locations()[i].location;
-        var title = locations()[i].title;
-        var id = locations()[i].id;
-        // Create markers for each location and puts into the markers array.
-        var marker = new google.maps.Marker({
-            position: position,
-            map: map,
-            title: title,
-            animation: google.maps.Animation.DROP,
-            id: id
-        });
-        // Push the marker to our array of markers.
-        markers.push(marker);
-        // Create an onclick event to open the large infowindow at each marker.
-        marker.addListener('click', function() {
-            populateInfoWindow(this, largeInfowindow);
-        });
-    }
+var viewModel = {
+    items: ko.observableArray([]),
+    filter: ko.observable(""),
 
-    // This function populates the infowindow when the marker is clicked. We'll only allow
-    // one infowindow which will open at the marker that is clicked, and populate based
-    // on that markers position.
-    function populateInfoWindow(marker, infowindow) {
+    markersFromModel: function() {
+        var largeInfowindow = new google.maps.InfoWindow();
+        // Creates an array of the locations for use as markers on initialize.
+        // Credit goes to the Google API course here on Udacity.
+        for (var i = 0; i < locations.length; i++) {
+            var position = locations[i].location;
+            var title = locations[i].title;
+            var id = locations[i].id;
+            // Create markers for each location and puts into the markers array.
+            var marker = new google.maps.Marker({
+                position: position,
+                map: map,
+                title: title,
+                animation: google.maps.Animation.DROP,
+                id: id
+            });
+            // Push the marker to our array of markers.
+            markers.push(marker);
+            // Create an onclick event to open the large infowindow at each marker.
+            marker.addListener('click', function() {
+                viewModel.populateInfoWindow(this, largeInfowindow);
+            });
+        }
+    },
+    // First removes all markers, and then places them again if they are part of the filter.
+    markersVisible: function() {
+        for (var i = 0; i < markers.length; i++) {
+            markers[i].setVisible(false);
+            for (var j = 0; j < viewModel.filteredItems().length; j++) {
+                if (markers[i].id == viewModel.filteredItems()[j].id) {
+                    markers[i].setVisible(true);
+                }
+            }
+        }
+    },
+
+    test: function() {
+        //console.log(viewModel.filter());
+        //console.log('Test Complete');
+    },
+
+    populateInfoWindow: function(marker, infowindow) {
         // Check to make sure the infowindow is not already opened on this marker.
         if (infowindow.marker != marker) {
             // Clear the infowindow content to give the streetview time to load.
@@ -88,7 +106,7 @@ var viewModel = function(){
             infowindow.addListener('closeclick', function() {
                 infowindow.marker = null;
             });
-
+            // This function does everything needed to get the Foursquare info loaded to the infoWindow.
             function getVenueInfo() {
                 var clientId = 'ZQ3FU1XQ41GNCR10FGQMQ54SFUNASZ5CXP1POHJWIEG1GQ3M';
                 var clientSecret = 'NOPQ4SNHLMZDLXCZD0WEK2TX0ETRDIJP1MOWCWNKRCGSB5GJ';
@@ -103,21 +121,37 @@ var viewModel = function(){
                     // Adds the best photo to the infowindow
                     if(data.response.venue.bestPhoto) {
                         var bestPhoto = data.response.venue.bestPhoto.prefix +'width200'+ data.response.venue.bestPhoto.suffix;
-                        console.log(bestPhoto);
                         $('#photo').append('<img src="'+ bestPhoto +'">');
                     } else {
                         $('#photo').append('<p>No photos exist of this place. Suspicious?</p>');
                     }
-
                 })
-
             }
             // Open the infowindow on the correct marker.
-            infowindow.open(map, marker);
             getVenueInfo();
+            infowindow.open(map, marker);
         }
     }
 };
+
+//*************The Filtering*************//
+
+
+viewModel.items = ko.observableArray(locations);
+
+// Filters the items
+viewModel.filteredItems = ko.computed(function() {
+    var filter = this.filter().toLowerCase();
+    if (!filter) {
+        return this.items();
+    } else {
+        return ko.utils.arrayFilter(this.items(), function(item) {
+            return item.title.toLowerCase().indexOf(filter) >=0;
+        });
+    }
+}, viewModel);
+
+
 
 function initMap() {
     map = new google.maps.Map(document.getElementById('map'), {
@@ -125,6 +159,5 @@ function initMap() {
         zoom: 13,
         mapTypeControl: false
     });
-    ko.applyBindings(new viewModel());
+    ko.applyBindings(new viewModel.markersFromModel());
 }
-
