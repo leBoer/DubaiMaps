@@ -6,21 +6,19 @@
     <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
-<div class="container">
-    <div class="option-box">
-        <h1>Gyms in Dubai</h1>
-        <input type="search" data-bind="textInput: viewModel.filter, event: {keyup: viewModel.markersVisible}">
-        <ul data-bind="foreach: viewModel.filteredItems">
-            <li data-bind="text: title"></li>
-        </ul>
+    <div class="container">
+        <div class="option-box">
+            <h1>Gyms in Dubai</h1>
+            <input placeholder="Filter" type="search" data-bind="textInput: viewModel.filter, event: {keyup: viewModel.markersVisible}">
+            <ul data-bind="foreach: viewModel.filteredItems">
+                <li class="gyms" data-bind="text: title, click: viewModel.clickGym"></li>
+            </ul>
+        </div>
+        <div id="map"></div>
     </div>
-    <div id="map"></div>
-</div>
-
-<script type='text/javascript' src='js/lib/knockout-min.js'></script>
-<script type='text/javascript' src='js/lib/jquery.min.js'></script>
-<script type='text/javascript' src='js/app.js'></script>
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBXGIcAc7uZjiIwqCEKxGvj3aQS1XSlT4A&libraries=geometry&v=3&callback=initMap">
-</script>
+    <script type='text/javascript' src='js/lib/knockout-min.js'></script>
+    <script type='text/javascript' src='js/lib/jquery.min.js'></script>
+    <script type='text/javascript' src='js/app.js'></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBXGIcAc7uZjiIwqCEKxGvj3aQS1XSlT4A&libraries=geometry&v=3&callback=initMap"></script>
 </body>
 </html>

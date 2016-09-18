@@ -29,3 +29,11 @@ body {
     text-align: left;
     width: 340px;
 }
+
+ul {
+    list-style-type: none;
+}
+
+.gyms:hover {
+    color: gold;
+}

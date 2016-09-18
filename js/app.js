@@ -1,5 +1,5 @@
 /**
- * Created by Christian on 04/09/2016.
+ * Created by Christian on 18/09/2016.
  */
 
 //**----The Model----**//
@@ -45,10 +45,14 @@ var locations = [
         }
     }
 ];
-
-//**----The View----**//
-
 //**----The ViewModel----**//
+// Alerts the user that there has been an error unless the maps api responds within 5 seconds.
+setTimeout(function() {
+    if(!window.google || !window.google.maps) {
+        alert('There is a problem with the Google Maps API. Please check back later.')
+    }
+}, 5000);
+// Maps api asynchronous load code here.
 var map;
 var markers = [];
 var viewModel = {
@@ -56,7 +60,7 @@ var viewModel = {
     filter: ko.observable(""),
 
     markersFromModel: function() {
-        var largeInfowindow = new google.maps.InfoWindow();
+        largeInfowindow = new google.maps.InfoWindow();
         // Creates an array of the locations for use as markers on initialize.
         // Credit goes to the Google API course here on Udacity.
         for (var i = 0; i < locations.length; i++) {
@@ -79,6 +83,17 @@ var viewModel = {
             });
         }
     },
+    // Start the marker bounce
+    toggleBounce: function(marker) {
+        viewModel.stopBounce();
+        marker.setAnimation(google.maps.Animation.BOUNCE);
+    },
+    // Stop the marker bounce
+    stopBounce: function() {
+        for (var i = 0; i < markers.length; i++) {
+            markers[i].setAnimation(null);
+        }
+    },
     // First removes all markers, and then places them again if they are part of the filter.
     markersVisible: function() {
         for (var i = 0; i < markers.length; i++) {
@@ -90,12 +105,14 @@ var viewModel = {
             }
         }
     },
-
-    test: function() {
-        //console.log(viewModel.filter());
-        //console.log('Test Complete');
+    // Opens the infowindow when a gym is clicked in the list
+    clickGym : function(item) {
+        for (var i = 0; i < markers.length; i++) {
+            if (markers[i].id == item.id) {
+                viewModel.populateInfoWindow(markers[i], largeInfowindow);
+            }
+        }
     },
-
     populateInfoWindow: function(marker, infowindow) {
         // Check to make sure the infowindow is not already opened on this marker.
         if (infowindow.marker != marker) {
@@ -105,6 +122,7 @@ var viewModel = {
             // Make sure the marker property is cleared if the infowindow is closed.
             infowindow.addListener('closeclick', function() {
                 infowindow.marker = null;
+                viewModel.stopBounce();
             });
             // This function does everything needed to get the Foursquare info loaded to the infoWindow.
             function getVenueInfo() {
@@ -125,20 +143,19 @@ var viewModel = {
                     } else {
                         $('#photo').append('<p>No photos exist of this place. Suspicious?</p>');
                     }
+                }).error(function(){
+                    alert("There is a problem with our Foursquare data, and you will not be able to see more information. Please come back at a later date.");
                 })
             }
             // Open the infowindow on the correct marker.
+            viewModel.toggleBounce(marker);
             getVenueInfo();
             infowindow.open(map, marker);
         }
     }
 };
-
 //*************The Filtering*************//
-
-
 viewModel.items = ko.observableArray(locations);
-
 // Filters the items
 viewModel.filteredItems = ko.computed(function() {
     var filter = this.filter().toLowerCase();
@@ -150,8 +167,6 @@ viewModel.filteredItems = ko.computed(function() {
         });
     }
 }, viewModel);
-
-
 
 function initMap() {
     map = new google.maps.Map(document.getElementById('map'), {
